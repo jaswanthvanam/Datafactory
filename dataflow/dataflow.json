@@ -1,0 +1,86 @@
+{
+	"name": "dataflow",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_input_landing_01",
+						"type": "DatasetReference"
+					},
+					"name": "source",
+					"description": "import data from input"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_input_landing_01",
+						"type": "DatasetReference"
+					},
+					"name": "sink",
+					"description": "export data to df_input_01"
+				}
+			],
+			"transformations": [
+				{
+					"name": "cast"
+				},
+				{
+					"name": "derivedColumn"
+				},
+				{
+					"name": "select"
+				},
+				{
+					"name": "rank"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          ORDER_ID as string,",
+				"          ORDER_DATETIME as string,",
+				"          CUSTOMER_ID as string,",
+				"          ORDER_STATUS as string,",
+				"          STORE_ID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> source",
+				"source cast(output(",
+				"          ORDER_ID as string",
+				"     ),",
+				"     errors: true) ~> cast",
+				"cast derive(ingested_by = 'jassu',",
+				"          ingested_timestamp = currentTimestamp(),",
+				"          firstname = 'jassu') ~> derivedColumn",
+				"derivedColumn select(mapColumn(",
+				"          ORDER_ID,",
+				"          ORDER_DATETIME,",
+				"          CUSTOMER_ID,",
+				"          ORDER_STATUS,",
+				"          STORE_ID,",
+				"          ingested_by,",
+				"          ingested_timestamp,",
+				"          firstname",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select",
+				"source rank(asc(ORDER_ID, true),",
+				"     output({1} as long)) ~> rank",
+				"source sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          ORDER_ID as string,",
+				"          ORDER_DATETIME as string,",
+				"          CUSTOMER_ID as string,",
+				"          ORDER_STATUS as string,",
+				"          STORE_ID as string",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink"
+			]
+		}
+	}
+}

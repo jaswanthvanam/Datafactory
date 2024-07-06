@@ -1,0 +1,32 @@
+{
+	"name": "ds_sink_landing_par_01",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blobStorage_01",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"parquet": {
+				"type": "String"
+			},
+			"filename": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().filename",
+					"type": "Expression"
+				},
+				"container": "landing"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

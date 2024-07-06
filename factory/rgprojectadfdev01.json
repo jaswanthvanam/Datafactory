@@ -1,0 +1,9 @@
+{
+	"name": "rgprojectadfdev01",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "d8613b56-0f16-403d-b198-dd6cfb0a3832",
+		"tenantId": "c65ed4a9-46d9-4990-b66c-e326298b1893"
+	}
+}
