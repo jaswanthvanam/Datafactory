@@ -1,0 +1,1855 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "rgprojectadfdev01"
+		},
+		"ls_blobStorage_01_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_blobStorage_01'"
+		},
+		"ls_delete_01_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_delete_01'"
+		},
+		"ls_projectadf_input_landing_01_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_projectadf_input_landing_01'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_blobStorage_01')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_blobStorage_01_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_delete_01')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_delete_01_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_projectadf_input_landing_01')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_projectadf_input_landing_01_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_binary_getmeta_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "input"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_dataflow_bronze_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_delete_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Binary",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "landing"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_input_landing_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_projectadf_input_landing_01",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"container": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "ORDER_ID",
+						"type": "String"
+					},
+					{
+						"name": "ORDER_DATETIME",
+						"type": "String"
+					},
+					{
+						"name": "CUSTOMER_ID",
+						"type": "String"
+					},
+					{
+						"name": "ORDER_STATUS",
+						"type": "String"
+					},
+					{
+						"name": "STORE_ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_projectadf_input_landing_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_input_landing_json_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "input"
+					}
+				},
+				"schema": {
+					"type": "object",
+					"properties": {
+						"ORDER_ID": {
+							"type": "integer"
+						},
+						"ORDER_DATETIME": {
+							"type": "string"
+						},
+						"CUSTOMER_ID": {
+							"type": "integer"
+						},
+						"ORDER_STATUS": {
+							"type": "string"
+						},
+						"STORE_ID": {
+							"type": "integer"
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_input_landing_par_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "input"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": [
+					{
+						"name": "ORDER_ID",
+						"type": "UTF8"
+					},
+					{
+						"name": "ORDER_DATETIME",
+						"type": "UTF8"
+					},
+					{
+						"name": "CUSTOMER_ID",
+						"type": "UTF8"
+					},
+					{
+						"name": "ORDER_STATUS",
+						"type": "UTF8"
+					},
+					{
+						"name": "STORE_ID",
+						"type": "UTF8"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_archive_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "archive"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_archive_json_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "archive"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_archive_par_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "archive"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_bronze_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "bronze"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_bronze_json_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "bronze"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_bronze_par_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "bronze"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_landing_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "input"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_landing_json_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "landing"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_sink_landing_par_01')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_blobStorage_01",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"parquet": {
+						"type": "String"
+					},
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"container": "landing"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_input_landing_01",
+								"type": "DatasetReference"
+							},
+							"name": "source",
+							"description": "import data from input"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_input_landing_01",
+								"type": "DatasetReference"
+							},
+							"name": "sink",
+							"description": "export data to df_input_01"
+						}
+					],
+					"transformations": [
+						{
+							"name": "cast"
+						},
+						{
+							"name": "derivedColumn"
+						},
+						{
+							"name": "select"
+						},
+						{
+							"name": "rank"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          ORDER_ID as string,",
+						"          ORDER_DATETIME as string,",
+						"          CUSTOMER_ID as string,",
+						"          ORDER_STATUS as string,",
+						"          STORE_ID as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> source",
+						"source cast(output(",
+						"          ORDER_ID as string",
+						"     ),",
+						"     errors: true) ~> cast",
+						"cast derive(ingested_by = 'jassu',",
+						"          ingested_timestamp = currentTimestamp(),",
+						"          firstname = 'jassu') ~> derivedColumn",
+						"derivedColumn select(mapColumn(",
+						"          ORDER_ID,",
+						"          ORDER_DATETIME,",
+						"          CUSTOMER_ID,",
+						"          ORDER_STATUS,",
+						"          STORE_ID,",
+						"          ingested_by,",
+						"          ingested_timestamp,",
+						"          firstname",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> select",
+						"source rank(asc(ORDER_ID, true),",
+						"     output({1} as long)) ~> rank",
+						"source sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          ORDER_ID as string,",
+						"          ORDER_DATETIME as string,",
+						"          CUSTOMER_ID as string,",
+						"          ORDER_STATUS as string,",
+						"          STORE_ID as string",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_input_landing_01')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_projectadf_01')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Metadata",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_binary_getmeta_01",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "BinaryReadSettings"
+							}
+						}
+					},
+					{
+						"name": "ForEach",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Get Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Get Metadata').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Set variable",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "filename",
+										"value": {
+											"value": "@item().name",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "Switch files",
+									"type": "Switch",
+									"dependsOn": [
+										{
+											"activity": "Set variable",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"on": {
+											"value": "@split(item().name,'.')[0]",
+											"type": "Expression"
+										},
+										"cases": [
+											{
+												"value": "json files",
+												"activities": [
+													{
+														"name": "Copy data input to landing json",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "JsonSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.json",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "JsonReadSettings"
+																}
+															},
+															"sink": {
+																"type": "JsonSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "JsonWriteSettings"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"mappings": [
+																	{
+																		"source": {
+																			"path": "$['ORDER_ID']"
+																		},
+																		"sink": {
+																			"path": "$['ORDER_ID']"
+																		}
+																	},
+																	{
+																		"source": {
+																			"path": "$['ORDER_DATETIME']"
+																		},
+																		"sink": {
+																			"path": "$['ORDER_DATETIME']"
+																		}
+																	},
+																	{
+																		"source": {
+																			"path": "$['CUSTOMER_ID']"
+																		},
+																		"sink": {
+																			"path": "$['CUSTOMER_ID']"
+																		}
+																	},
+																	{
+																		"source": {
+																			"path": "$['ORDER_STATUS']"
+																		},
+																		"sink": {
+																			"path": "$['ORDER_STATUS']"
+																		}
+																	},
+																	{
+																		"source": {
+																			"path": "$['STORE_ID']"
+																		},
+																		"sink": {
+																			"path": "$['STORE_ID']"
+																		}
+																	}
+																]
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_input_landing_json_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "json"
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_landing_json_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "json"
+																}
+															}
+														]
+													},
+													{
+														"name": "Copy data landing to bronze json",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "Copy data input to landing json",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "JsonSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.json",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "JsonReadSettings"
+																}
+															},
+															"sink": {
+																"type": "JsonSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "JsonWriteSettings"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"mappings": [
+																	{
+																		"source": {
+																			"path": "$"
+																		},
+																		"sink": {
+																			"path": "$"
+																		}
+																	}
+																]
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_sink_landing_json_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "json"
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_bronze_json_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "json"
+																}
+															}
+														]
+													},
+													{
+														"name": "Copy data bronze to archive json",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "Copy data landing to bronze json",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "JsonSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.json",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "JsonReadSettings"
+																}
+															},
+															"sink": {
+																"type": "JsonSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "JsonWriteSettings"
+																}
+															},
+															"enableStaging": false
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_sink_bronze_json_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "json"
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_archive_json_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "json"
+																}
+															}
+														]
+													},
+													{
+														"name": "Delete json",
+														"type": "Delete",
+														"dependsOn": [
+															{
+																"activity": "Copy data bronze to archive json",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"dataset": {
+																"referenceName": "ds_sink_landing_json_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "json"
+																}
+															},
+															"logStorageSettings": {
+																"linkedServiceName": {
+																	"referenceName": "ls_blobStorage_01",
+																	"type": "LinkedServiceReference"
+																},
+																"path": "delete"
+															},
+															"enableLogging": true,
+															"storeSettings": {
+																"type": "AzureBlobStorageReadSettings",
+																"recursive": true,
+																"wildcardFileName": "*.json",
+																"enablePartitionDiscovery": false
+															}
+														}
+													}
+												]
+											},
+											{
+												"value": "csv files",
+												"activities": [
+													{
+														"name": "Copy data input to landing csv",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "DelimitedTextSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.csv",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextReadSettings"
+																}
+															},
+															"sink": {
+																"type": "DelimitedTextSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextWriteSettings",
+																	"quoteAllText": true,
+																	"fileExtension": ".txt"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"mappings": [
+																	{
+																		"source": {
+																			"name": "ORDER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "ORDER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "ORDER_DATETIME",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "ORDER_DATETIME",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "CUSTOMER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "CUSTOMER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "ORDER_STATUS",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "ORDER_STATUS",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "STORE_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "STORE_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	}
+																],
+																"typeConversion": true,
+																"typeConversionSettings": {
+																	"allowDataTruncation": true,
+																	"treatBooleanAsNumber": false
+																}
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_input_landing_01",
+																"type": "DatasetReference",
+																"parameters": {}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_landing_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "csv"
+																}
+															}
+														]
+													},
+													{
+														"name": "Copy data landing to bronze csv",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "Copy data input to landing csv",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "DelimitedTextSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextReadSettings"
+																}
+															},
+															"sink": {
+																"type": "DelimitedTextSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextWriteSettings",
+																	"quoteAllText": true,
+																	"fileExtension": ".txt"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"mappings": [
+																	{
+																		"source": {
+																			"name": "ORDER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "ORDER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "ORDER_DATETIME",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "ORDER_DATETIME",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "CUSTOMER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "CUSTOMER_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "ORDER_STATUS",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "ORDER_STATUS",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "STORE_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		},
+																		"sink": {
+																			"name": "STORE_ID",
+																			"type": "String",
+																			"physicalType": "String"
+																		}
+																	}
+																],
+																"typeConversion": true,
+																"typeConversionSettings": {
+																	"allowDataTruncation": true,
+																	"treatBooleanAsNumber": false
+																}
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_sink_landing_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "csv"
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_bronze_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "csv"
+																}
+															}
+														]
+													},
+													{
+														"name": "Copy data bronze to archive csv",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "Copy data landing to bronze csv",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "DelimitedTextSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.csv",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextReadSettings"
+																}
+															},
+															"sink": {
+																"type": "DelimitedTextSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "DelimitedTextWriteSettings",
+																	"quoteAllText": true,
+																	"fileExtension": ".txt"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"typeConversion": true,
+																"typeConversionSettings": {
+																	"allowDataTruncation": true,
+																	"treatBooleanAsNumber": false
+																}
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_sink_bronze_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "csv"
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_archive_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "csv"
+																}
+															}
+														]
+													},
+													{
+														"name": "Delete csv",
+														"type": "Delete",
+														"dependsOn": [
+															{
+																"activity": "Copy data bronze to archive csv",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"dataset": {
+																"referenceName": "ds_delete_01",
+																"type": "DatasetReference",
+																"parameters": {}
+															},
+															"logStorageSettings": {
+																"linkedServiceName": {
+																	"referenceName": "ls_delete_01",
+																	"type": "LinkedServiceReference"
+																},
+																"path": "delete"
+															},
+															"enableLogging": true,
+															"storeSettings": {
+																"type": "AzureBlobStorageReadSettings",
+																"recursive": true,
+																"wildcardFileName": "*.csv",
+																"enablePartitionDiscovery": false
+															}
+														}
+													}
+												]
+											},
+											{
+												"value": "parque",
+												"activities": [
+													{
+														"name": "Copy data input to landing parquet",
+														"type": "Copy",
+														"dependsOn": [],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "ParquetSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.parquet",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "ParquetReadSettings"
+																}
+															},
+															"sink": {
+																"type": "ParquetSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "ParquetWriteSettings"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"mappings": [
+																	{
+																		"source": {
+																			"name": "ORDER_ID",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		},
+																		"sink": {
+																			"name": "ORDER_ID",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "ORDER_DATETIME",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		},
+																		"sink": {
+																			"name": "ORDER_DATETIME",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "CUSTOMER_ID",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		},
+																		"sink": {
+																			"name": "CUSTOMER_ID",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "ORDER_STATUS",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		},
+																		"sink": {
+																			"name": "ORDER_STATUS",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		}
+																	},
+																	{
+																		"source": {
+																			"name": "STORE_ID",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		},
+																		"sink": {
+																			"name": "STORE_ID",
+																			"type": "String",
+																			"physicalType": "UTF8"
+																		}
+																	}
+																],
+																"typeConversion": true,
+																"typeConversionSettings": {
+																	"allowDataTruncation": true,
+																	"treatBooleanAsNumber": false
+																}
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_input_landing_par_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "parquet"
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_landing_par_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"parquet": "parquet",
+																	"filename": "parquet"
+																}
+															}
+														]
+													},
+													{
+														"name": "Copy data landing to bronze parquet",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "Copy data input to landing parquet",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "ParquetSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.json",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "ParquetReadSettings"
+																}
+															},
+															"sink": {
+																"type": "ParquetSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "ParquetWriteSettings"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"typeConversion": true,
+																"typeConversionSettings": {
+																	"allowDataTruncation": true,
+																	"treatBooleanAsNumber": false
+																}
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_input_landing_par_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": {
+																		"value": "@activity('Get Metadata').output.childItems",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_bronze_par_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "parquet"
+																}
+															}
+														]
+													},
+													{
+														"name": "Copy data bronze to archive",
+														"type": "Copy",
+														"dependsOn": [
+															{
+																"activity": "Copy data landing to bronze parquet",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"source": {
+																"type": "ParquetSource",
+																"storeSettings": {
+																	"type": "AzureBlobStorageReadSettings",
+																	"recursive": true,
+																	"wildcardFileName": "*.parquet",
+																	"enablePartitionDiscovery": false
+																},
+																"formatSettings": {
+																	"type": "ParquetReadSettings"
+																}
+															},
+															"sink": {
+																"type": "ParquetSink",
+																"storeSettings": {
+																	"type": "AzureBlobStorageWriteSettings",
+																	"copyBehavior": "MergeFiles"
+																},
+																"formatSettings": {
+																	"type": "ParquetWriteSettings"
+																}
+															},
+															"enableStaging": false,
+															"translator": {
+																"type": "TabularTranslator",
+																"typeConversion": true,
+																"typeConversionSettings": {
+																	"allowDataTruncation": true,
+																	"treatBooleanAsNumber": false
+																}
+															}
+														},
+														"inputs": [
+															{
+																"referenceName": "ds_sink_bronze_par_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": {
+																		"value": "@activity('Get Metadata').output.childItems",
+																		"type": "Expression"
+																	}
+																}
+															}
+														],
+														"outputs": [
+															{
+																"referenceName": "ds_sink_archive_par_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"filename": "parquet"
+																}
+															}
+														]
+													},
+													{
+														"name": "Delete par",
+														"type": "Delete",
+														"dependsOn": [
+															{
+																"activity": "Copy data bronze to archive",
+																"dependencyConditions": [
+																	"Succeeded"
+																]
+															}
+														],
+														"policy": {
+															"timeout": "0.12:00:00",
+															"retry": 0,
+															"retryIntervalInSeconds": 30,
+															"secureOutput": false,
+															"secureInput": false
+														},
+														"userProperties": [],
+														"typeProperties": {
+															"dataset": {
+																"referenceName": "ds_sink_landing_par_01",
+																"type": "DatasetReference",
+																"parameters": {
+																	"parquet": "parquet",
+																	"filename": "parquet"
+																}
+															},
+															"logStorageSettings": {
+																"linkedServiceName": {
+																	"referenceName": "ls_blobStorage_01",
+																	"type": "LinkedServiceReference"
+																}
+															},
+															"enableLogging": true,
+															"storeSettings": {
+																"type": "AzureBlobStorageReadSettings",
+																"recursive": true,
+																"wildcardFileName": "*.parquet",
+																"enablePartitionDiscovery": false
+															}
+														}
+													}
+												]
+											}
+										],
+										"defaultActivities": [
+											{
+												"name": "Wait",
+												"type": "Wait",
+												"dependsOn": [],
+												"userProperties": [],
+												"typeProperties": {
+													"waitTimeInSeconds": 5
+												}
+											}
+										]
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "Data flow",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [
+							{
+								"activity": "ForEach",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"source": {},
+									"sink": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"filename": {
+						"type": "String"
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-07-06T05:53:31Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_binary_getmeta_01')]",
+				"[concat(variables('factoryId'), '/dataflows/dataflow')]",
+				"[concat(variables('factoryId'), '/datasets/ds_input_landing_json_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_landing_json_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_bronze_json_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_archive_json_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_input_landing_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_landing_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_bronze_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_archive_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_delete_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_input_landing_par_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_landing_par_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_bronze_par_01')]",
+				"[concat(variables('factoryId'), '/datasets/ds_sink_archive_par_01')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_blobStorage_01')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_delete_01')]"
+			]
+		}
+	]
+}
