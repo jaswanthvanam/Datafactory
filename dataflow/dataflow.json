@@ -15,12 +15,7 @@
 			],
 			"sinks": [
 				{
-					"dataset": {
-						"referenceName": "ds_input_landing_01",
-						"type": "DatasetReference"
-					},
-					"name": "sink",
-					"description": "export data to df_input_01"
+					"name": "sink1"
 				}
 			],
 			"transformations": [
@@ -32,9 +27,6 @@
 				},
 				{
 					"name": "select"
-				},
-				{
-					"name": "rank"
 				}
 			],
 			"scriptLines": [
@@ -67,19 +59,10 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select",
-				"source rank(asc(ORDER_ID, true),",
-				"     output({1} as long)) ~> rank",
-				"source sink(allowSchemaDrift: true,",
+				"select sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     input(",
-				"          ORDER_ID as string,",
-				"          ORDER_DATETIME as string,",
-				"          CUSTOMER_ID as string,",
-				"          ORDER_STATUS as string,",
-				"          STORE_ID as string",
-				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> sink"
+				"     skipDuplicateMapOutputs: true) ~> sink1"
 			]
 		}
 	}
