@@ -178,6 +178,13 @@
 						"referenceName": "ds_rev_landing_binary_blob",
 						"type": "DatasetReference"
 					},
+					"logStorageSettings": {
+						"linkedServiceName": {
+							"referenceName": "ls_blobStorage_01",
+							"type": "LinkedServiceReference"
+						},
+						"path": "delete"
+					},
 					"enableLogging": true,
 					"storeSettings": {
 						"type": "AzureBlobStorageReadSettings",
