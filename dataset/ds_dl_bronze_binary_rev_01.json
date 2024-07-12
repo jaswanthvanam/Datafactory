@@ -1,0 +1,17 @@
+{
+	"name": "ds_dl_bronze_binary_rev_01",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureDataLakeStorage_rev_01",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Binary",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileSystem": "bronze"
+			}
+		}
+	}
+}
